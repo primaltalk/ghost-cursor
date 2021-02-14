@@ -214,10 +214,15 @@ export const createCursor = (page: Page, start: Vector = origin, performRandomMo
       // Make sure the object is in view
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       if ((elem as any)._remoteObject !== undefined && (elem as any)._remoteObject.objectId !== undefined) {
-        await (page as any)._client.send('DOM.scrollIntoView', {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-          objectId: (elem as any)._remoteObject.objectId
-        })
+        const objectId = elem._remoteObject.objectId
+        if (objectId !== null) {
+          await (page as any).evaluate(objectId => {
+            const element = document.getElementById(objectId)
+            if (element !== null) {
+              (element as any).scrollIntoViewIfNeeded()
+            }
+          })
+        }
       }
       const box = await getElementBox(page, elem)
       if (box === null) {
